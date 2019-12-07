@@ -2,26 +2,32 @@
 
 open Cradle
 
-let factor (ss: ScanState) = 
-    ss
-        .getNum()
-        .map(fun (c, s) -> 
-            emitLn("MOVE #" + c.ToString() + ", D0") 
-            s
-        )
+let rec factor (ss: ScanState) = 
+    match ss.look with
+    | '(' -> 
+        ss.matchNext('(')
+            .flatMap(expression)
+            .flatMap(fun s -> s.matchNext(')'))
+    | _ ->
+        ss
+            .getNum()
+            .map(fun (c, s) -> 
+                emitLn("MOVE #" + c.ToString() + ", D0") 
+                s
+            )
 
-let multiply(ss: ScanState) = 
+and multiply(ss: ScanState) = 
     ss.matchNext('*')
         .flatMap(factor)
         .IO("MULS (SP)+, D0")
 
-let divide(ss: ScanState) = 
+and divide(ss: ScanState) = 
     ss.matchNext('/')
         .flatMap(factor)
         .IO("MOVE (SP)+, D1")
         .IO("DIVS D1, D0")
 
-let term(ss: ScanState) =
+and term(ss: ScanState) =
     factor(ss)
         .flatMap(fun s ->
             let rec helper (ss: ScanState)  =
@@ -39,19 +45,19 @@ let term(ss: ScanState) =
             helper s
         )
 
-let add(ss: ScanState) = 
+and add(ss: ScanState) = 
     ss.matchNext('+')
         .flatMap(term)
         .IO("ADD (SP)+, D0")
         
-let subtract(ss: ScanState) = 
+and subtract(ss: ScanState) = 
     ss.matchNext('-')
         .flatMap(term)
         .IO("SUB (SP)+, D0")
         .IO("NEG D0")
 
         
-let expression ss =
+and expression (ss: ScanState): Either<string, ScanState> =
     term(ss)
         .flatMap(fun s -> 
             let rec helper (ss: ScanState) = 
