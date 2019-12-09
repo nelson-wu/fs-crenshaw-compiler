@@ -22,6 +22,8 @@ let isAlpha(c: char) = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 
 let isDigit(c: char) = c >= '0' && c <= '9'
 
+let isAddOp look = look = '+' || look = '-'
+
 let emit(s: string) = printfn "%s%s" s TAB
 
 let emitLn(s: string) = 

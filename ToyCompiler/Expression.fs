@@ -2,12 +2,27 @@
 
 open Cradle
 
+let ident (ss: ScanState) = 
+    ss.getName() 
+        .flatMap(fun (name, s) -> 
+            let s2 = s.matchNext('(')
+            match s2 with
+            | Right _ -> 
+                s2
+                    .flatMap(fun s -> s.matchNext(')'))
+                    .IO("BSR " + name.ToString())
+            | Left _ ->
+                emitLn("MOVE " + name.ToString() + "(PC), D0")
+                s2
+        )
+
 let rec factor (ss: ScanState) = 
     match ss.look with
     | '(' -> 
         ss.matchNext('(')
             .flatMap(expression)
             .flatMap(fun s -> s.matchNext(')'))
+    | c when isAlpha c -> ident ss
     | _ ->
         ss
             .getNum()
@@ -55,13 +70,19 @@ and subtract(ss: ScanState) =
         .flatMap(term)
         .IO("SUB (SP)+, D0")
         .IO("NEG D0")
-
         
 and expression (ss: ScanState): Either<string, ScanState> =
-    term(ss)
+
+    let ss2 = 
+        if isAddOp ss.look then
+            emitLn("CLR D0")
+            Right ss
+        else term(ss)
+    
+    ss2
         .flatMap(fun s -> 
             let rec helper (ss: ScanState) = 
-                if ss.look = '+' || ss.look = '-' then 
+                if isAddOp ss.look then 
                     emitLn("MOVE D0, -(SP)")
                     let ss2 = 
                         match s.look with
