@@ -96,7 +96,13 @@ and expression (ss: ScanState): Either<string, ScanState> =
             helper s
         )
 
-
- 
+let assignment (ss: ScanState) =
+    ss.getName()
+        .flatMap(fun (name, s) -> 
+            s.matchNext('=') 
+                .flatMap(expression)
+                .IO("LEA " + name.ToString() + "(PC), A0")
+                .IO("MOVE D0, (A0)")
+        )
 
 
