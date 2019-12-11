@@ -11,9 +11,9 @@ let ident (ss: ScanState) =
             | Right _ -> 
                 s2
                     .flatMap(fun s -> s.matchNext(')'))
-                    .IO("BSR " + name.ToString())
+                    .IO("BSR " + name.ToString(), s.writer)
             | Left _ ->
-                emitLn("MOVE " + name.ToString() + "(PC), D0")
+                s.writer("MOVE " + name.ToString() + "(PC), D0")
                 s2
         )
 
@@ -28,20 +28,20 @@ let rec factor (ss: ScanState) =
         ss
             .getNum()
             .map(fun (c, s) -> 
-                emitLn("MOVE #" + c.ToString() + ", D0") 
+                s.writer("MOVE #" + c.ToString() + ", D0") 
                 s
             )
 
 and multiply(ss: ScanState) = 
     ss.matchNext('*')
         .flatMap(factor)
-        .IO("MULS (SP)+, D0")
+        .IO("MULS (SP)+, D0", ss.writer)
 
 and divide(ss: ScanState) = 
     ss.matchNext('/')
         .flatMap(factor)
-        .IO("MOVE (SP)+, D1")
-        .IO("DIVS D1, D0")
+        .IO("MOVE (SP)+, D1", ss.writer)
+        .IO("DIVS D1, D0", ss.writer)
 
 and term(ss: ScanState) =
     factor(ss)
@@ -64,13 +64,13 @@ and term(ss: ScanState) =
 and add(ss: ScanState) = 
     ss.matchNext('+')
         .flatMap(term)
-        .IO("ADD (SP)+, D0")
+        .IO("ADD (SP)+, D0", ss.writer)
         
 and subtract(ss: ScanState) = 
     ss.matchNext('-')
         .flatMap(term)
-        .IO("SUB (SP)+, D0")
-        .IO("NEG D0")
+        .IO("SUB (SP)+, D0", ss.writer)
+        .IO("NEG D0", ss.writer)
         
 and expression (ss: ScanState): Either<string, ScanState> =
 
@@ -84,7 +84,7 @@ and expression (ss: ScanState): Either<string, ScanState> =
         .flatMap(fun s -> 
             let rec helper (ss: ScanState) = 
                 if isAddOp ss.look then 
-                    emitLn("MOVE D0, -(SP)")
+                    ss.writer("MOVE D0, -(SP)")
                     let ss2 = 
                         match s.look with
                         | '-' -> subtract ss
@@ -102,8 +102,8 @@ let assignment (ss: ScanState) =
         .flatMap(fun (name, s) -> 
             s.matchNext('=') 
                 .flatMap(expression)
-                .IO("LEA " + name.ToString() + "(PC), A0")
-                .IO("MOVE D0, (A0)")
+                .IO(("LEA " + name.ToString() + "(PC), A0"), ss.writer)
+                .IO("MOVE D0, (A0)", ss.writer)
         )
 
 

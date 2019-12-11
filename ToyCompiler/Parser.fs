@@ -2,10 +2,18 @@
 
 open Cradle
 
-type ScanState = { mutable look: char }
+type ScanState = { 
+    mutable look: char
+    reader: unit -> char
+    writer: string -> unit
+}
 
 type ScanState with
-    static member init() = { look = getChar() }
+    static member init r w = {
+        reader = r
+        writer = w
+        look = r() 
+    }
 
     member this.peek discriminator expectedErr =
         if not (discriminator this.look) then Left(expected expectedErr)
@@ -20,7 +28,7 @@ type ScanState with
         if not (discriminator this.look) then Left(expected err)
         else 
             let name = this.look
-            this.look <- getChar()
+            this.look <- this.reader()
             Right(name, this)
 
     member this.matchNext(next: char) = 
@@ -37,7 +45,7 @@ type ScanState with
                 acc
             else 
                 let s = this.look
-                this.look <- getChar()
+                this.look <- this.reader()
                 helper (acc + s.ToString())
 
         if not (isAlpha this.look) then
@@ -50,7 +58,7 @@ type ScanState with
                 acc
             else
                 let s = this.look
-                this.look <- getChar()
+                this.look <- this.reader()
                 helper (acc + s.ToString())
 
         if not (isDigit this.look) then 

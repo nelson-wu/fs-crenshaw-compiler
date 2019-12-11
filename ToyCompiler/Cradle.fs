@@ -47,9 +47,9 @@ type Either<'L, 'R> with
         | Right x -> f x
         | Left err -> Left err
 
-    member this.IO s = 
+    member this.IO (s, writer) = 
         this.map(fun r -> 
-            emitLn s
+            writer s
             r
         )
 
