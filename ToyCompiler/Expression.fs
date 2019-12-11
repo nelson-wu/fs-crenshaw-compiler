@@ -1,6 +1,7 @@
 ﻿module Expression
 
 open Cradle
+open Parser
 
 let ident (ss: ScanState) = 
     ss.getName() 
