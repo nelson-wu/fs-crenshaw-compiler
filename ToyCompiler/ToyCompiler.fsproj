@@ -9,6 +9,7 @@
     <Compile Include="Cradle.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Expression.fs" />
+    <Compile Include="Tester.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

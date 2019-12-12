@@ -5,19 +5,21 @@ open Cradle
 type ScanState = { 
     mutable look: char
     reader: unit -> char
-    writer: string -> unit
+    mutable output: string
 }
 
 type ScanState with
-    static member init r w = {
+    static member init r = {
         reader = r
-        writer = w
         look = r() 
+        output = ""
     }
 
     member this.peek discriminator expectedErr =
         if not (discriminator this.look) then Left(expected expectedErr)
         else Right(this)
+
+    member this.writer s = this.output <- this.output + "\t" +  s + "\n"
 
     member this.peekNext(next: char) = 
         this.peek
@@ -64,6 +66,9 @@ type ScanState with
         if not (isDigit this.look) then 
             Left (expected "Integer")
         else Right (helper "", this)
+
+    member this.addToOutput s =
+        this.output <- this.output + s
 
 
 

@@ -6,8 +6,9 @@ open Parser
 
 [<EntryPoint>]
 let main argv =
-    let expr = expression(ScanState.init getChar emitLn)
+    let expr = expression(ScanState.init getChar)
+    
     match expr with
     | Left err -> failwith err
-    | Right _ -> 0
+    | Right ss -> printfn "%s" ss.output; 0
     // return an integer exit code

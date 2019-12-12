@@ -48,7 +48,7 @@ and term(ss: ScanState) =
         .flatMap(fun s ->
             let rec helper (ss: ScanState)  =
                 if ss.look = '*' || ss.look = '/' then
-                    emitLn("MOVE D0, -(SP)")
+                    s.writer("MOVE D0, -(SP)")
                     let ss2 = 
                         match ss.look with
                         | '*' -> multiply ss
@@ -76,7 +76,7 @@ and expression (ss: ScanState): Either<string, ScanState> =
 
     let ss2 = 
         if isAddOp ss.look then
-            emitLn("CLR D0")
+            ss.writer("CLR D0")
             Right ss
         else term(ss)
     
