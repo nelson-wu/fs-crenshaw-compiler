@@ -6,7 +6,7 @@ open Parser
 open System.IO
 open System.Diagnostics
 
-let writeTest testName code expected =
+let writeExprTest testName code expected =
     let getCharFromCode = 
         let mutable counter = 0
         let str: string = code + "\n"
@@ -37,6 +37,10 @@ START:
 
     LEA FAILURE, A1
     MOVE.B #13, D0
+    TRAP #15
+
+    MOVE (SP)+, D1
+    MOVE.B #3, D0
     TRAP #15
 
     JMP End

@@ -15,6 +15,11 @@ type ScanState with
         output = ""
     }
 
+    member this.skipWhiteSpace () = 
+        if isWhiteSpace this.look then 
+            this.look <- this.reader ()
+            this.skipWhiteSpace()
+
     member this.peek discriminator expectedErr =
         if not (discriminator this.look) then Left(expected expectedErr)
         else Right(this)
@@ -29,8 +34,10 @@ type ScanState with
     member this.get discriminator err = 
         if not (discriminator this.look) then Left(expected err)
         else 
+            this.skipWhiteSpace()
             let name = this.look
             this.look <- this.reader()
+            this.skipWhiteSpace()
             Right(name, this)
 
     member this.matchNext(next: char) = 
@@ -52,7 +59,10 @@ type ScanState with
 
         if not (isAlpha this.look) then
             Left (expected "Name")
-        else Right (helper "", this)
+        else 
+            let name = helper ""
+            this.skipWhiteSpace()
+            Right (name, this)
 
     member this.getNum () = 
         let rec helper acc =
@@ -65,10 +75,9 @@ type ScanState with
 
         if not (isDigit this.look) then 
             Left (expected "Integer")
-        else Right (helper "", this)
-
-    member this.addToOutput s =
-        this.output <- this.output + s
-
+        else 
+            let num = helper ""
+            this.skipWhiteSpace()
+            Right (num, this)
 
 

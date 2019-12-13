@@ -6,7 +6,10 @@ open Parser
 
 [<EntryPoint>]
 let main argv =
-    let expr = expression(ScanState.init getChar)
+    let scanState = ScanState.init getChar
+    scanState.skipWhiteSpace()
+
+    let expr = assignment scanState
     
     match expr with
     | Left err -> failwith err

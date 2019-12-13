@@ -2,7 +2,7 @@
 
 open System
 
-let TAB = "\t"
+let TAB = '\t'
 
 let getChar () = 
     let x = Console.Read();
@@ -26,7 +26,9 @@ let isAlNum c = isAlpha c || isDigit c
 
 let isAddOp look = look = '+' || look = '-'
 
-let emit(s: string) = printfn "%s%s" s TAB
+let isWhiteSpace c = c = ' ' || c = TAB
+
+let emit(s: string) = printfn "%s%s" s (TAB.ToString())
 
 let emitLn(s: string) = 
         emit(s)

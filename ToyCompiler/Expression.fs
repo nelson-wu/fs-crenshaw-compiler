@@ -41,12 +41,13 @@ and divide(ss: ScanState) =
     ss.matchNext('/')
         .flatMap(factor)
         .IO("MOVE (SP)+, D1", ss.writer)
+        .IO("EXG D0, D1", ss.writer)
         .IO("DIVS D1, D0", ss.writer)
 
 and term(ss: ScanState) =
     factor(ss)
         .flatMap(fun s ->
-            let rec helper (ss: ScanState)  =
+            let rec helper (ss: ScanState) =
                 if ss.look = '*' || ss.look = '/' then
                     s.writer("MOVE D0, -(SP)")
                     let ss2 = 
